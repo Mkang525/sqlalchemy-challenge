@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import *
 #create_engine, func
 
+import numpy as np
+import pandas as pd
+
 from flask import Flask, jsonify
 
 
@@ -67,9 +70,8 @@ def precipitation():
     prcp_list = []
     for date, prcp in results:
         prcp_dict = {}
-        prcp_dict["name"] = name
-        prcp_dict["age"] = age
-        prcp_dict["sex"] = sex
+        prcp_dict["date"] = date
+        prcp_dict["prcp"] = prcp
         prcp_list.append(prcp_dict)
 
     return jsonify(prcp_list)
@@ -82,6 +84,10 @@ def precipitation():
 /api/v1.0/stations
     -Return a JSON list of stations from the dataset.
 """
+Base = automap_base()
+Base.prepare(engine, reflect=True)
+Station= Base.classes.station
+
 @app.route("/api/v1.0/stations")
 def stations():    
     session = Session(engine)
