@@ -1,34 +1,17 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import *
-#create_engine, func
 
 import numpy as np
 import pandas as pd
 
 from flask import Flask, jsonify
 
-
-# In[3]:
-
-
 """
 Now that you have completed your initial analysis, design a Flask API based on the queries that you have just developed.
 Use Flask to create your routes.
-
-Routes:
-/
-    -Home page.
-    -List all routes that are available.
 """
-from flask import Flask, jsonify
 
 engine = create_engine("sqlite:///hawaii.sqlite")
 
@@ -44,15 +27,11 @@ def welcome():
         f"Available Routes:<br/>"
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
-        f"/api/v1.0/tobs<br/>"
-#        f"/api/v1.0/<start>"
-#        f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/tobs<br/><br/>"       
+        f"Specific Dates- Format: YYYY-MM-DD</br>"
+        f"/api/v1.0/<start></br>"
         
     )
-
-
-# In[4]:
-
 
 """
 /api/v1.0/precipitation
@@ -77,7 +56,7 @@ def precipitation():
     return jsonify(prcp_list)
 
 
-# In[5]:
+
 
 
 """
@@ -99,9 +78,6 @@ def stations():
     return jsonify(stations)
 
 
-# In[6]:
-
-
 """
 /api/v1.0/tobs
     -Query the dates and temperature observations of the most active station for the last year of data.
@@ -110,22 +86,79 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def tobs():
     session=Session(engine)
-    tobs=session.query(Measurement.station,Measurement.date, Measurement.tobs).    filter(Measurement.station == 'USC00519281').filter(Measurement.date >= '2016-08-23').all()
+    tobs=session.query(Measurement.station,Measurement.date, Measurement.tobs).\
+        filter(Measurement.station == 'USC00519281').filter(Measurement.date >= '2016-08-23').all()
     
     session.close()
     
     return jsonify(tobs)
 
+"""
+/api/v1.0/<start> 
+    -Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start 
+     or start-end range.
+    -When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
+    -When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and 
+     end date inclusive.
 
-# In[7]:
+"""    
+@app.route("/api/v1.0/<start>")
 
+def your_route(start=None):
 
+    session = Session(engine)
+    
+    start_list = session.query(Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
+        filter(Measurement.date >= start).\
+        group_by(Measurement.date).all()
+
+    tobs_list = []
+    for a, b, c, d in start_list:
+        tobs_dict = {}
+        tobs_dict["Date"] = a
+        tobs_dict["Min"] = b
+        tobs_dict["Max"] = c
+        tobs_dict["Avg"] = d
+    
+        tobs_list.append(tobs_dict)
+        
+    return jsonify(tobs_list)
+
+            
+@app.route("/api/v1.0/<start>/<end>")
+def end_route(start=None,end=None):
+
+    session = Session(engine)
+    
+    start_end_list = session.query(Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
+        filter(Measurement.date >=start).\
+        filter(Measurement.date<=end).\
+        group_by(Measurement.date).all()
+    
+    tobs_se_list = []
+    for a, b, c, d in start_end_list:
+        tobs_se_dict = {}
+        tobs_se_dict["Date"] = a
+        tobs_se_dict["Min"] = b
+        tobs_se_dict["Max"] = c
+        tobs_se_dict["Avg"] = d
+    
+        tobs_se_list.append(tobs_se_dict)
+
+    return jsonify(tobs_se_list)
+
+        
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True)  
 
 
-# In[ ]:
+    
+  
 
 
+
+
+
+            
 
 
