@@ -25,8 +25,7 @@ def welcome():
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/><br/>"       
         f"Specific Dates- Format: YYYY-MM-DD</br>"
-        f"/api/v1.0/<start></br>"
-        
+        f"/api/v1.0/<start></br>"        
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -78,9 +77,9 @@ def your_route(start=None):
 
     session = Session(engine)
     
-    start_list = session.query(Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
-        filter(Measurement.date >= start).\
-        group_by(Measurement.date).all()
+    start_list= session.query(Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
+                    filter(Measurement.date >= start).group_by(Measurement.date).all()
+                    
 
     tobs_list = []
     for a, b, c, d in start_list:
